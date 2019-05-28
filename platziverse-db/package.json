@@ -1,0 +1,22 @@
+{
+  "name": "platziverse-db",
+  "version": "1.0.0",
+  "description": "IoT Platform - DB Module",
+  "main": "index.js",
+  "scripts": {
+    "lint": "standard --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/franndyabreu/platziverse.git"
+  },
+  "author": "Franndy Abreu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/franndyabreu/platziverse/issues"
+  },
+  "homepage": "https://github.com/franndyabreu/platziverse#readme",
+  "devDependencies": {
+    "standard": "^12.0.1"
+  }
+}
