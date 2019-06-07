@@ -4,14 +4,13 @@ const metric = {
   id: 1,
   type: "memory",
   value: "705",
-  uuid: "xxx",
   createdAt: new Date(),
   updatedAt: new Date()
 };
 
 const metrics = [
   metric,
-  extendObj(metric, { id: 2, type: "cpu", uuid: "yyy" }),
+  extendObj(metric, { id: 2, type: "cpu", uuid: "yyy-yyy-yyy" }),
   extendObj(metric, { id: 3, type: "memory", value: "200", uuid: "yyy" }),
   extendObj(metric, { id: 4, type: "memory", value: "300", uuid: "zzz" }),
   extendObj(metric, { id: 5, type: "cpu", value: "100", uuid: "xxx" }),

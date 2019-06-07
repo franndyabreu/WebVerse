@@ -1,51 +1,51 @@
-'use strict'
+"use strict";
 
-module.exports = function setupAgent (AgentModel) {
-  function findById (id) {
-    return AgentModel.findById(id)
+module.exports = function setupAgent(AgentModel) {
+  function findById(id) {
+    return AgentModel.findById(id);
   }
 
-  function findByUuid (uuid) {
+  function findByUuid(uuid) {
     return AgentModel.findOne({
-      where: uuid
-    })
+      where: { uuid }
+    });
   }
 
-  function findAll () {
-    return AgentModel.findAll()
+  function findAll() {
+    return AgentModel.findAll();
   }
 
-  function findConnected () {
+  function findConnected() {
     return AgentModel.findAll({
       where: {
         connected: true
       }
-    })
+    });
   }
 
-  function findByUsername (username) {
+  function findByUsername(username) {
     return AgentModel.findAll({
       where: { username, connected: true }
-    })
+    });
   }
 
-  async function createOrUpdate (agent) {
+  async function createOrUpdate(agent) {
     // Query condition
     const cond = {
       where: {
         uuid: agent.uuid
       }
-    }
+    };
 
-    const existingAgent = await AgentModel.findOne(cond)
+    const existingAgent = await AgentModel.findOne(cond);
 
     if (existingAgent) {
-      const updated = await AgentModel.update(agent, cond)
-      return updated ? AgentModel.findOne(cond) : existingAgent
+      const updated = await AgentModel.update(agent, cond);
+      return updated ? await AgentModel.findOne(cond) : existingAgent;
     }
 
-    const result = await AgentModel.create(agent)
-    return result.toJSON()
+    const result = await AgentModel.create(agent);
+    return result.toJSON();
   }
 
   return {
@@ -55,5 +55,5 @@ module.exports = function setupAgent (AgentModel) {
     findByUuid,
     findConnected,
     createOrUpdate
-  }
-}
+  };
+};

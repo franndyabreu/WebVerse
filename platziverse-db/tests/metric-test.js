@@ -4,22 +4,20 @@ const test = require("ava");
 const proxyquire = require("proxyquire");
 const sinon = require("sinon");
 const metricFixtures = require("./fixtures/metric");
-const singleMetric = Object.assign({}, metricFixtures.single);
+const agentFixtures = require("./fixtures/agent");
+
 const type = "cpu";
-let uuidArgs = singleMetric.uuid;
+let agentUUID = "yyy-yyy-yyy";
 
-const responseUuid = metricFixtures.findByAgentUuid(metricFixtures.single.uuid);
-const typeAgentResponse = metricFixtures.findByTypeAgentUuid(type, uuidArgs);
-
+const responseUuid = metricFixtures.findByAgentUuid(agentUUID);
+const typeAgentResponse = metricFixtures.findByTypeAgentUuid(type, agentUUID);
 let sandbox = null;
 let db = null;
 
-let WhereArgs = { where: { uuidArgs } };
-
 let AgentStub = {
-  hasMany: sinon.spy(),
-  findOne: sinon.spy()
+  hasMany: sinon.spy()
 };
+
 const findByAgentUuidArgs = {
   attributes: ["type"],
   group: ["type"],
@@ -28,7 +26,7 @@ const findByAgentUuidArgs = {
       attributes: [],
       model: AgentStub,
       where: {
-        uuid: uuidArgs
+        uuid: agentUUID
       }
     }
   ],
@@ -47,7 +45,7 @@ const typeAgentUuidArgs = {
       attributes: [],
       model: AgentStub,
       where: {
-        uuid: uuidArgs
+        uuid: agentUUID
       }
     }
   ],
@@ -60,11 +58,14 @@ let config = {
 
 let MetricStub = null;
 
+let uuidArgs = {
+  where: { uuid: agentUUID }
+};
+
 const newMetric = {
   id: 1,
   type: "memory",
   value: "705",
-  uuid: "xxx",
   createdAt: new Date(),
   updatedAt: new Date()
 };
@@ -72,9 +73,19 @@ const newMetric = {
 test.beforeEach(async () => {
   sandbox = sinon.createSandbox();
   MetricStub = {
-    belongsTo: sinon.spy()
+    belongsTo: sandbox.spy()
   };
 
+  // AgentStub = {
+  //   hasMany: sandbox.spy()
+  // };
+
+  //Model findOne stub Agent
+
+  AgentStub.findOne = sandbox.stub();
+  AgentStub.findOne
+    .withArgs({ where: { uuid: agentUUID } })
+    .returns(Promise.resolve(agentFixtures.findByUuid(agentUUID)));
   //Model CreateMetric stub
   MetricStub.create = sandbox.stub();
   MetricStub.create.withArgs(newMetric).returns(
@@ -90,14 +101,14 @@ test.beforeEach(async () => {
   MetricStub.findByTypeAgentUuid
     .withArgs(typeAgentUuidArgs)
     .returns(
-      Promise.resolve(metricFixtures.findByTypeAgentUuid(type, uuidArgs))
+      Promise.resolve(metricFixtures.findByTypeAgentUuid(type, agentUUID))
     );
 
   //Modell findByAgentUuid stub
   MetricStub.findByAgentUuid = sandbox.stub();
   MetricStub.findByAgentUuid
     .withArgs(findByAgentUuidArgs)
-    .returns(Promise.resolve(metricFixtures.findByAgentUuid(uuidArgs)));
+    .returns(Promise.resolve(metricFixtures.findByAgentUuid(agentUUID)));
 
   // Model findAll Stub
   MetricStub.findAll = sandbox.stub();
@@ -120,21 +131,43 @@ test.afterEach(() => {
   sinon.restore();
 });
 
+test.serial("Setup#Metric", t => {
+  t.true(AgentStub.hasMany.called, "Should be called");
+  t.true(MetricStub.belongsTo.called, "Should be called");
+  t.true(AgentStub.hasMany.calledOnce, "Should be called once");
+  t.true(MetricStub.belongsTo.calledOnce, "Should be called once");
+  t.true(
+    AgentStub.hasMany.calledWith(MetricStub),
+    "Should be called with MetricModel"
+  );
+  t.true(
+    MetricStub.belongsTo.calledWith(AgentStub),
+    "Should be called with AgentModel"
+  );
+});
+
 test("Metric", t => {
   t.truthy(db.Metric, "Metric service should exist");
 });
 
 test.serial("Metric#create -existing", async t => {
-  let metric = await db.Metric.create(uuidArgs, newMetric);
+  let metric = await db.Metric.create(agentUUID, newMetric);
   t.true(AgentStub.findOne.called, "FindOne called");
+  t.true(
+    AgentStub.findOne.calledWith(uuidArgs),
+    "FindOne called with specified args"
+  );
+  t.true(MetricStub.create.called, "Should be called");
+  t.true(MetricStub.create.calledOnce, "Should be called once");
+  t.true(
+    MetricStub.create.calledWith(newMetric),
+    "Should be called with new metric"
+  );
 
-  // t.true(
-  //   AgentStub.findOne.calledWith(uuidArgs),
-  //   "FindOne called with specified args"
-  // );
+  t.deepEqual(metric, newMetric, "Response and single should be the same");
 });
 test.serial("Metric#findByUuid", async t => {
-  let metric = await db.Metric.findByAgentUuid(uuidArgs);
+  let metric = await db.Metric.findByAgentUuid(agentUUID);
   t.true(MetricStub.findAll.called, "findAll called");
   t.true(MetricStub.findAll.calledOnce, "findAll called Once");
   // t.true(MetricStub.findByAgentUuid.called, "FindbyAgentUuid should be called");
@@ -143,22 +176,21 @@ test.serial("Metric#findByUuid", async t => {
   //   "findByAgentUuid should be called Once"
   // );
   // t.true(
-  //   MetricStub.findByAgentUuid.calledWith(uuidArgs),
+  //   MetricStub.findByAgentUuid.calledWith(agentUUID),
   //   "findByAgentUuid should be called with specified params"
   // );
 
   t.deepEqual(
     metric,
-    metricFixtures.findByAgentUuid(uuidArgs),
+    metricFixtures.findByAgentUuid(agentUUID),
     "Should be the same."
   );
-  //   t.true(MetricStub.findByAgentUuid.called, "FindByAgentUuid should be called");
 });
 
 test.serial("Metric#FindByTypeAgentUuid", async t => {
-  let metric = await db.Metric.findByTypeAgentUuid(type, uuidArgs);
+  let metric = await db.Metric.findByTypeAgentUuid(type, agentUUID);
   t.true(MetricStub.findAll.called, "findAll called");
   t.true(MetricStub.findAll.calledOnce, "findAll called Once");
 
-  t.deepEqual(metric, metricFixtures.findByTypeAgentUuid(type, uuidArgs));
+  t.deepEqual(metric, metricFixtures.findByTypeAgentUuid(type, agentUUID));
 });
