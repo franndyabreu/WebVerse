@@ -4,7 +4,7 @@
   "description": "A simple IoT Platform - Agent",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "Standard"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,14 @@
   "bugs": {
     "url": "https://github.com/franndyabreu/platziverse/issues"
   },
-  "homepage": "https://github.com/franndyabreu/platziverse#readme"
+  "homepage": "https://github.com/franndyabreu/platziverse#readme",
+  "devDependencies": {
+    "debug": "^4.1.1",
+    "standard": "^12.0.1"
+  },
+  "dependencies": {
+    "defaults": "^1.0.3",
+    "mqtt": "^3.0.0",
+    "uuid": "^3.3.2"
+  }
 }
