@@ -27,6 +27,6 @@
     "debug": "^4.1.1",
     "mosca": "^2.8.3",
     "platziverse-db": "file:../platziverse-db",
-    "redis": "^2.8.0"
+    "redis": "^3.1.1"
   }
 }
